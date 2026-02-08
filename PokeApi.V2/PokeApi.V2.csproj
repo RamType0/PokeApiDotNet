@@ -11,6 +11,7 @@
     <Copyright>© RamType0</Copyright>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<RepositoryUrl>https://github.com/RamType0/PokeApiDotNet</RepositoryUrl>
+	<GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
