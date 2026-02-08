@@ -9,8 +9,8 @@
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Description>PokéAPI API v2 client library. Supports in-memory caching and distributed caching.</Description>
     <Copyright>© RamType0</Copyright>
-	<VersionPrefix>0.1.0</VersionPrefix>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/RamType0/PokeApiDotNet</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
