@@ -37,6 +37,12 @@ jobs:
 
     - name: Pack NuGet package
       run: dotnet pack --no-build --configuration Release --output ./nupkgs -p:PackageVersion=${{ needs.get-version.outputs.version }}
-    
+
+    - name: NuGet Login
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: Ram.Type-0
+
     - name: Publish NuGet package
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
