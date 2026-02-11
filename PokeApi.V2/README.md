@@ -82,3 +82,17 @@ builder.AddRedisDistributedCache("distributed-cache");
 
 builder.Services.AddSingleton<PokeApiClient>();
 ```
+
+## Difference between PokeApi.V2 and PokeApiNet
+
+### PokeApiNet
+
+- Targets .NET Standard 2.0
+- Some of nullable annotations are missing
+- Does not support distributed caching
+
+### PokeApi.V2
+
+- Targets .NET 10+
+- Fully annotated with nullable reference types
+- Supports distributed caching (e.g. Redis)
