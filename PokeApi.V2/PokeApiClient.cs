@@ -9,49 +9,46 @@ namespace PokeApi.V2;
 
 public class PokeApiClient: IDisposable
 {
-    public const string ApiEndpoint = "https://pokeapi.co/api/v2/";
-
+    public const string DefaultEndpoint = "https://pokeapi.co/api/v2/";
     static JsonSerializerOptions JsonSerializerOptions { get; } = new(JsonSerializerDefaults.Web)
     {
         RespectNullableAnnotations = true,
     };
     HttpClient Http { get; }
+    internal Uri Endpoint { get; }
+
     IMemoryCache? MemoryCache { get; }
     IDistributedCache? DistributedCache { get; }
-    public PokeApiClient() : this(new HttpClient()) { }
-    public PokeApiClient(HttpClient httpClient): this(httpClient, null, null) { }
-    public PokeApiClient(IMemoryCache memoryCache) : this(new(), memoryCache) { }
-    public PokeApiClient(HttpClient httpClient, IMemoryCache memoryCache) : this(httpClient, memoryCache, null) { }
-    public PokeApiClient(IDistributedCache distributedCache) : this(new(), distributedCache) { }
-    public PokeApiClient(HttpClient httpClient, IDistributedCache distributedCache) : this(httpClient, null, distributedCache) { }
-    public PokeApiClient(HttpClient httpClient, IMemoryCache? memoryCache = null, IDistributedCache? distributedCache = null)
+    public PokeApiClient() : this(new HttpClient(), null, null, null) { }
+    public PokeApiClient(HttpClient httpClient, Uri? endpoint = null, IMemoryCache? memoryCache = null, IDistributedCache? distributedCache = null)
     {
         Http = httpClient;
+        Endpoint = endpoint ?? new Uri(DefaultEndpoint, UriKind.Absolute);
         MemoryCache = memoryCache;
         DistributedCache = distributedCache;
     }
     public Task<T> GetApiResourceAsync<T>(int id, CancellationToken cancellationToken = default)
         where T : notnull, IApiResource
-        => GetAsync<T>(new Uri(T.CreateUrl(id), UriKind.Absolute), cancellationToken);
+        => GetAsync<T>(new Uri(T.CreateUrl(Endpoint.AbsoluteUri, id), UriKind.Absolute), cancellationToken);
     public Task<T> GetApiResourceAsync<T>(ReadOnlySpan<char> name, CancellationToken cancellationToken = default)
         where T : notnull, INamedApiResource
-        => GetAsync<T>(new Uri(T.CreateUrl(name), UriKind.Absolute), cancellationToken);
+        => GetAsync<T>(new Uri(T.CreateUrl(Endpoint.AbsoluteUri, name), UriKind.Absolute), cancellationToken);
     public Task<T> GetApiResourceAsync<T>(ApiResourceReference<T> apiResourceReference, CancellationToken cancellationToken = default)
         where T : notnull, IApiResource
         => GetAsync<T>(apiResourceReference.Url, cancellationToken);
     public Task<T> GetApiResourcePropertyAsync<T>(int id, CancellationToken cancellationToken = default)
         where T: notnull, IApiResourceProperty
-        => GetAsync<T>(new(T.CreateUrl(id), UriKind.Absolute), cancellationToken);
+        => GetAsync<T>(new(T.CreateUrl(Endpoint.AbsoluteUri, id), UriKind.Absolute), cancellationToken);
     public Task<T> GetApiResourcePropertyAsync<T>(ReadOnlySpan<char> name, CancellationToken cancellationToken = default)
         where T : notnull, INamedApiResourceProperty
-        => GetAsync<T>(new(T.CreateUrl(name), UriKind.Absolute), cancellationToken);
+        => GetAsync<T>(new(T.CreateUrl(Endpoint.AbsoluteUri, name), UriKind.Absolute), cancellationToken);
     public Task<TProperty> GetApiResourcePropertyAsync<TResource, TProperty>(ApiResourceReference<TResource> apiResourceReference, CancellationToken cancellationToken = default)
         where TResource : notnull, IApiResource
         where TProperty : notnull, IApiResourceProperty<TResource, TProperty>
         => GetAsync<TProperty>(new(TProperty.CreateUrl(apiResourceReference), UriKind.Absolute), cancellationToken);
     public Task<NamedApiResourceList<T>> GetApiResourcePageAsync<T>(int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
         where T : notnull, INamedApiResource
-        => GetAsync<NamedApiResourceList<T>>(new(T.CreatePageUrl(offset, limit), UriKind.Absolute), cancellationToken);
+        => GetAsync<NamedApiResourceList<T>>(new(T.CreatePageUrl(Endpoint.AbsoluteUri, offset, limit), UriKind.Absolute), cancellationToken);
     public IAsyncEnumerable<NamedApiResourceReference<T>> EnumerateApiResourcesAsync<T>(int pageSize = 20, CancellationToken cancellationToken = default)
         where T : notnull, INamedApiResource
         => EnumerateApiResourcesAsync<T>(.., pageSize, false, cancellationToken);
@@ -138,14 +135,14 @@ public class PokeApiClient: IDisposable
             {
                 case INamedApiResource namedApiResource:
                     {
-                        MemoryCache.Set(namedApiResource.GetUrlWithId(), value);
-                        MemoryCache.Set(namedApiResource.GetUrlWithName(), value);
+                        MemoryCache.Set(namedApiResource.GetUrlWithId(Endpoint.AbsoluteUri), value);
+                        MemoryCache.Set(namedApiResource.GetUrlWithName(Endpoint.AbsoluteUri), value);
                     }
                     break;
                 case IApiResource apiResource:
                     {
 
-                        MemoryCache.Set(apiResource.GetUrlWithId(), value);
+                        MemoryCache.Set(apiResource.GetUrlWithId(Endpoint.AbsoluteUri), value);
                     }
                     break;
                 default:
@@ -166,13 +163,13 @@ public class PokeApiClient: IDisposable
             {
                 case INamedApiResource namedApiResource:
                     {
-                        await DistributedCache.SetAsync(namedApiResource.GetUrlWithId(), bytes, cancellationToken);
-                        await DistributedCache.SetAsync(namedApiResource.GetUrlWithName(), bytes, cancellationToken);
+                        await DistributedCache.SetAsync(namedApiResource.GetUrlWithId(Endpoint.AbsoluteUri), bytes, cancellationToken);
+                        await DistributedCache.SetAsync(namedApiResource.GetUrlWithName(Endpoint.AbsoluteUri), bytes, cancellationToken);
                     }
                     break;
                 case IApiResource apiResource:
                     {
-                        await DistributedCache.SetAsync(apiResource.GetUrlWithId(), bytes, cancellationToken);
+                        await DistributedCache.SetAsync(apiResource.GetUrlWithId(Endpoint.AbsoluteUri), bytes, cancellationToken);
                     }
                     break;
                 default:
@@ -190,7 +187,7 @@ public static class PokeApiClientUnnamedApiResourcePageExtensions
 {
     public static Task<UnnamedApiResourceList<T>> GetApiResourcePageAsync<T>(this PokeApiClient client, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
         where T : notnull, IApiResource
-        => client.GetAsync<UnnamedApiResourceList<T>>(new(T.CreatePageUrl(offset, limit), UriKind.Absolute), cancellationToken);
+        => client.GetAsync<UnnamedApiResourceList<T>>(new(T.CreatePageUrl(client.Endpoint.AbsoluteUri, offset, limit), UriKind.Absolute), cancellationToken);
     public static IAsyncEnumerable<ApiResourceReference<T>> EnumerateApiResourcesAsync<T>(this PokeApiClient client, int pageSize = 20, CancellationToken cancellationToken = default)
         where T : notnull, IApiResource
         => client.EnumerateApiResourcesAsync<T>(.., pageSize, false, cancellationToken);

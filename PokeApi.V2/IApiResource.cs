@@ -6,9 +6,9 @@ namespace PokeApi.V2;
 public interface IApiResource
 {
     public abstract static string EndpointPath { get; }
-    public abstract static string CreatePageUrl(int offset, int limit);
-    public abstract static string CreateUrl(int id);
-    public abstract string GetUrlWithId();
+    public abstract static string CreatePageUrl(ReadOnlySpan<char> apiV2Endpoint, int offset, int limit);
+    public abstract static string CreateUrl(ReadOnlySpan<char> apiV2Endpoint, int id);
+    public abstract string GetUrlWithId(ReadOnlySpan<char> apiV2Endpoint);
     /// <summary>
     /// The identifier for this resource.
     /// </summary>
@@ -19,8 +19,8 @@ public interface IApiResource
 public interface IApiResource<TSelf> : IApiResource
     where TSelf : IApiResource<TSelf>
 {
-    static string IApiResource.CreatePageUrl(int offset, int limit) => $"{PokeApiClient.ApiEndpoint}{TSelf.EndpointPath}/?offset={offset}&limit={limit}";
-    static string IApiResource.CreateUrl(int id) => $"{PokeApiClient.ApiEndpoint}{TSelf.EndpointPath}/{id}/";
-    string IApiResource.GetUrlWithId() => $"{PokeApiClient.ApiEndpoint}{TSelf.EndpointPath}/{Id}/";
+    static string IApiResource.CreatePageUrl(ReadOnlySpan<char> apiV2Endpoint, int offset, int limit) => $"{apiV2Endpoint}{TSelf.EndpointPath}/?offset={offset}&limit={limit}";
+    static string IApiResource.CreateUrl(ReadOnlySpan<char> apiV2Endpoint, int id) => $"{apiV2Endpoint}{TSelf.EndpointPath}/{id}/";
+    string IApiResource.GetUrlWithId(ReadOnlySpan<char> apiV2Endpoint) => $"{apiV2Endpoint}{TSelf.EndpointPath}/{Id}/";
 
 }
