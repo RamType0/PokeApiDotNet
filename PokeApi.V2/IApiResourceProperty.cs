@@ -1,9 +1,10 @@
-﻿namespace PokeApi.V2;
+﻿
+namespace PokeApi.V2;
 
 public interface IApiResourceProperty
 {
     public abstract static string RelativePath { get; }
-    public abstract static string CreateUrl(int id);
+    public abstract static string CreateUrl(ReadOnlySpan<char> apiV2endpoint, int id);
 }
 public interface IApiResourceProperty<TResource, TSelf> : IApiResourceProperty
     where TResource : notnull, IApiResource
@@ -13,5 +14,5 @@ public interface IApiResourceProperty<TResource, TSelf> : IApiResourceProperty
     {
         return $"{apiResourceReference.Url.AbsoluteUri}{TSelf.RelativePath}";
     }
-    static string IApiResourceProperty.CreateUrl(int id) => $"{TResource.CreateUrl(id)}{TSelf.RelativePath}";
+    static string IApiResourceProperty.CreateUrl(ReadOnlySpan<char> apiV2Endpoint, int id) => $"{TResource.CreateUrl(apiV2Endpoint, id)}{TSelf.RelativePath}";
 }
