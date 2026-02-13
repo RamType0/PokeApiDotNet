@@ -19,10 +19,10 @@ public class PokeApiClient: IDisposable
 
     IMemoryCache? MemoryCache { get; }
     IDistributedCache? DistributedCache { get; }
-    public PokeApiClient() : this(new HttpClient(), null, null, null) { }
-    public PokeApiClient(HttpClient httpClient, Uri? endpoint = null, IMemoryCache? memoryCache = null, IDistributedCache? distributedCache = null)
+    public PokeApiClient() : this(null, null, null, null) { }
+    public PokeApiClient(HttpClient? httpClient = null, Uri? endpoint = null, IMemoryCache? memoryCache = null, IDistributedCache? distributedCache = null)
     {
-        Http = httpClient;
+        Http = httpClient ?? new();
         Endpoint = endpoint ?? new Uri(DefaultEndpoint, UriKind.Absolute);
         MemoryCache = memoryCache;
         DistributedCache = distributedCache;
